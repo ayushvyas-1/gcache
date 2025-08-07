@@ -18,6 +18,10 @@ type CacheItem struct {
 }
 
 func NewLRUCache(capacity int) *LRUCache {
+	if capacity <= 0 {
+		panic("LRUCache capacity must be greater than 0")
+	}
+
 	return &LRUCache{
 		capacity: capacity,
 		cache:    make(map[string]*DoublyNode),
@@ -58,10 +62,11 @@ func (lru *LRUCache) Put(key, value string) {
 
 	if lru.list.Count() == lru.capacity {
 		tail := lru.list.last
-		lru.list.Remove(tail)
-
-		evicted := tail.GetData().(*CacheItem)
-		delete(lru.cache, evicted.key)
+		if tail != nil {
+			lru.list.Remove(tail)
+			evicted := tail.GetData().(*CacheItem)
+			delete(lru.cache, evicted.key)
+		}
 	}
 
 	item := &CacheItem{key, value}
