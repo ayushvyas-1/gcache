@@ -1,11 +1,15 @@
-package main
+package cache
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type LRUCache struct {
 	capacity int
 	cache    map[string]*DoublyNode
 	list     *DoublyLinkedList
+	mu       sync.RWMutex
 }
 
 type CacheItem struct {
@@ -22,6 +26,10 @@ func NewLRUCache(capacity int) *LRUCache {
 }
 
 func (lru *LRUCache) Get(key string) (string, bool) {
+
+	lru.mu.Lock()         // mutex lock -- blocks RW
+	defer lru.mu.Unlock() // unlocks when the func end
+
 	if node, exist := lru.cache[key]; exist {
 
 		lru.list.Remove(node)
@@ -35,6 +43,9 @@ func (lru *LRUCache) Get(key string) (string, bool) {
 }
 
 func (lru *LRUCache) Put(key, value string) {
+	lru.mu.Lock()         // mutex lock -- blocks RW
+	defer lru.mu.Unlock() // unlocks when the func end
+
 	if node, exists := lru.cache[key]; exists {
 
 		item := node.GetData().(*CacheItem)
@@ -60,10 +71,48 @@ func (lru *LRUCache) Put(key, value string) {
 	lru.cache[key] = node
 }
 
+func (lru *LRUCache) Delete(key string) bool {
+	lru.mu.Lock()
+	defer lru.mu.Unlock()
+
+	if node, exists := lru.cache[key]; exists {
+		lru.list.Remove(node)
+		delete(lru.cache, key)
+		return true
+	}
+	return false
+}
+
+func (lru *LRUCache) Size() int {
+	lru.mu.RLock()
+	defer lru.mu.RUnlock()
+	return lru.list.Count()
+}
+
+func (lru *LRUCache) Clear() {
+	lru.mu.Lock()
+	defer lru.mu.Unlock()
+
+	lru.cache = make(map[string]*DoublyNode)
+	lru.list = NewDoublyLinkedList()
+}
+
+func (lru *LRUCache) Contains(key string) bool {
+	lru.mu.RLock()
+	defer lru.mu.RUnlock()
+
+	_, exists := lru.cache[key]
+	return exists
+}
+
 //for quick look
 
 func (lru *LRUCache) Print() {
-	fmt.Println("Cache state (MRU->LRU):")
+
+	lru.mu.RLock()
+	defer lru.mu.RUnlock()
+
+	fmt.Printf("Cache state (MRU->LRU, size: %d/%d):\n", lru.list.Count(), lru.capacity)
 
 	current := lru.list.head
 	for current != nil {

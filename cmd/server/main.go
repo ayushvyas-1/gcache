@@ -1,10 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/ayushvyas-1/gcache/internal/cache"
+)
 
 func main() {
 
-	lru := NewLRUCache(9)
+	lru := cache.NewLRUCache(9)
 
 	lru.Put("a", "1")
 	lru.Put("b", "2")
