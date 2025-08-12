@@ -215,8 +215,7 @@ func TestCapacityOne(t *testing.T) {
 func BenchmarkPut(b *testing.B) {
 	cache := cache.NewLRUCache(1000)
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for i := 0; b.Loop(); i++ {
 		key := fmt.Sprintf("key_%d", i%500) // Some overlap to test updates
 		value := fmt.Sprintf("value_%d", i)
 		cache.Put(key, value)
