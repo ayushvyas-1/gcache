@@ -15,7 +15,6 @@ a naive lru cache implementation in go
 - [X] Create response formatter
 - [X] Create simple CLI client (client/main.go)
      Support interactive mode and single commands
-     Add connection pooling to client
-- []  Add connection pooling to client
-
+- [ ]  Add connection pooling to client
+- [ ]  Test interactive scenarios
  
